@@ -1,0 +1,25 @@
+machines:
+    - machine:
+        name: lab01
+        auth: *labauth
+        server: lab01.testing.company.com
+        sets: 
+            - linux
+            - x86
+
+    - machine:
+        name: lab02
+        auth: *labauth
+        server: lab02.testing.company.com
+        sets: 
+            - linux
+            - arm
+            
+    - machine:
+        name: lab03
+        auth: *labauth
+        server: lab03.testing.company.com
+        sets: 
+            - windows
+            - x86
+

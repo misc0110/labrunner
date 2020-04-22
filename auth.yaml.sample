@@ -1,0 +1,10 @@
+auths: 
+    - proxy: &proxy
+        username: <your username>
+        password: <your password>
+        server: jump.testing.company.com
+        
+    - auth: &labauth
+        username: <your username>
+        password: <your password>
+        proxy: *proxy
