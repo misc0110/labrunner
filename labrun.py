@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import paramiko
 import yaml
 import sys
