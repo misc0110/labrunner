@@ -32,7 +32,7 @@ With the `--all` (or short `-a`) option, LabRunner targets all machines defined 
 If you want to target only one machine, use the `--machine` (or short `-m`) option followed by the name of the machine. 
 The `--machine` option can also be used multiple times to select multiple machines, e.g., `-m lab01 -m lab02`. 
 Machines can also be part of groups defined in the configuration file (like tags). 
-Use the `--group` (or short `-G`) to select all machines in a specific group, e.g. `-m x86`. 
+Use the `--group` (or short `-G`) to select all machines in a specific group, e.g. `-G x86`. 
 
 ## Parallelize
 By default, LabRunner connects to the machines sequentially to execute the commands. 
