@@ -3,7 +3,7 @@ import paramiko
 import yaml
 import sys
 import time
-import socket     
+import socket
 from select import select
 import click
 import logging
@@ -40,25 +40,25 @@ def setup_logger():
 class ParaProcess():
     def __init__(self):
         self.returncode = 0
-        
 
-class ParaProxy(paramiko.proxy.ProxyCommand):                      
-    def __init__(self, stdin, stdout, stderr):                             
-        self.stdin = stdin                                                 
-        self.stdout = stdout                                               
+
+class ParaProxy(paramiko.proxy.ProxyCommand):
+    def __init__(self, stdin, stdout, stderr):
+        self.stdin = stdin
+        self.stdout = stdout
         self.stderr = stderr
         self.timeout = None
         self.channel = stdin.channel
         self.process = ParaProcess()
-        
-    def send(self, content):                                               
-        try:                                                               
-            self.stdin.write(content)                                      
-        except IOError as exc:                                             
-            raise socket.error("Error: {}".format(exc))                                                    
-        return len(content)                                                
 
-    def recv(self, size):                                                  
+    def send(self, content):
+        try:
+            self.stdin.write(content)
+        except IOError as exc:
+            raise socket.error("Error: {}".format(exc))
+        return len(content)
+
+    def recv(self, size):
         try:
             buffer = b''
             start = time.time()
@@ -85,11 +85,11 @@ class ParaProxy(paramiko.proxy.ProxyCommand):
             if elapsed >= self.timeout:
                 raise socket.timeout()
             return self.timeout - elapsed
-        return None                                   
+        return None
 
-    def close(self):                                                       
-        self.stdin.close()                                                 
-        self.stdout.close()                                                
+    def close(self):
+        self.stdin.close()
+        self.stdout.close()
         self.stderr.close()
         self.channel.close()
 
@@ -105,7 +105,7 @@ class RemoteJob():
         self.quiet = quiet
         self.simulate = simulate
         self.verbose = verbose
-        
+
     def start(self):
         logger.info("Running job on %s @ %s" % (self.machine["name"], self.machine["server"]))
 
@@ -130,14 +130,14 @@ class RemoteJob():
             password = auth.get("password", None)
             key = auth.get("key", None)
             keyfile = auth.get("keyfile", None)
-            
+
             logger.debug("Connect %s to %s (proxy: %s)" % (username, server, "Yes" if proxy else "No"))
-            
+
             if not self.simulate:
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 ssh.connect(server, username=username, password=password, pkey=key, key_filename=keyfile, sock=transport, timeout=int(self.machine.get("timeout", 5)),allow_agent=False,look_for_keys=False)
-            
+
             if len(self.copy):
                 if not self.simulate:
                     ftp_client = ssh.open_sftp()
@@ -145,27 +145,47 @@ class RemoteJob():
                     logger.info("Copying '%s' to machine" % c)
                     if not self.simulate:
                         ftp_client.put(c, c)
+                        mode = os.stat(c).st_mode
+                        ftp_client.chmod(c, mode)
                 if not self.simulate:
                     ftp_client.close()
-            
+
             if len(self.run):
                 stdout_full = []
+                stderr_full = []
                 for r in self.run:
                     if not self.simulate:
-                        _, ssh_stdout, _ = ssh.exec_command(r)
+                        _, ssh_stdout, ssh_stderr = ssh.exec_command(r)
 
                         stdout = []
                         for line in ssh_stdout:
                             stdout.append(line.strip())
                         stdout_full += stdout
-                            
-                        if not self.quiet: 
-                            logger.info("%s stdout:" % self.machine["name"])
-                            print("\n".join(stdout))
+
+                        stderr = []
+                        for line in ssh_stderr:
+                            stderr.append(line.strip())
+                        stderr_full += stderr
+
+                        if not self.quiet:
+                            if len(stdout):
+                                logger.info("%s stdout:" % self.machine["name"])
+                                print("\n".join(stdout))
+                            if len(stderr):
+                                logger.warning("%s stderr:" % self.machine["name"])
+                                print("\n".join(stderr))
+
                 if not self.simulate and self.save_output:
                     with open("%s.stdout" % self.machine["name"], "w") as o:
                         o.write("\n".join(stdout_full) + "\n")
-                
+                    if len(stderr_full):
+                        with open("%s.stderr" % self.machine["name"], "w") as o:
+                            o.write("\n".join(stderr_full) + "\n")
+                    else:
+                        if os.path.exists("%s.stderr" % self.machine["name"]):
+                            os.unlink("%s.stderr" % self.machine["name"])
+
+
             if len(self.get):
                 if not self.simulate:
                     ftp_client = ssh.open_sftp()
@@ -175,7 +195,7 @@ class RemoteJob():
                         ftp_client.get(g, "%s_%s" % (self.machine["name"], g))
                 if not self.simulate:
                     ftp_client.close()
-                    
+
             if len(self.copy) and self.delete:
                 if not self.simulate:
                     ftp_client = ssh.open_sftp()
@@ -184,7 +204,7 @@ class RemoteJob():
                     if not self.simulate:
                         ftp_client.remove(c)
                 if not self.simulate:
-                    ftp_client.close()   
+                    ftp_client.close()
         except Exception as e:
             logger.error("Connection to %s failed!" % self.machine["name"])
             print(e)
@@ -209,18 +229,18 @@ def job_runner(job):
 @click.option('-A', '--auth', default="auth.yaml", help='YAML file containing the authentication details (including proxies).')
 @click.option('-p', '--parallelize', is_flag=True, help='Connect to remote machines in parallel.')
 def main(copy, run, get, delete, save_output, quiet, group, machine, all_machines, simulate, verbose, machine_list, auth, parallelize):
-    global logger 
+    global logger
     logger = setup_logger()
     if verbose:
         logger.setLevel(logging.DEBUG)
-    
+
     if not os.path.exists(auth):
         logger.critical("No %s file found! Did you adapt auth.yaml.sample and rename it to auth.yaml?" % auth)
         sys.exit(1)
     if not os.path.exists(machine_list):
         logger.critical("No %s configuration file found" % machine_list)
         sys.exit(1)
-    
+
     config = open(auth).read() + "\n" + open(machine_list).read()
     setting = yaml.load(config, Loader=yaml.FullLoader)
     #print(setting["machines"])
@@ -244,7 +264,7 @@ def main(copy, run, get, delete, save_output, quiet, group, machine, all_machine
         jobs.append(RemoteJob(m, copy, run, get, delete, save_output, quiet, simulate, verbose))
 
     logger.info("%d jobs created!" % len(jobs))
-    
+
     if parallelize:
         pool = Pool()
         pool.map(job_runner, jobs)
@@ -252,7 +272,7 @@ def main(copy, run, get, delete, save_output, quiet, group, machine, all_machine
         for j in jobs:
             print("")
             j.start()
-            
+
 
 if __name__ == "__main__":
     main()
