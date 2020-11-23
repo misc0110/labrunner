@@ -63,6 +63,8 @@ LabRunner supports the following options
 
 # File formats
 Both the machine configuration (machines.yaml) and authentication settings (auth.yaml) are YAML files. 
+If no location for an authentication or machine configuration file is provided via the command line, the tool first looks in the current working directory. 
+If no file is found there, the tool tries to use the files in "~/.config/labrunner/".
 
 ## Machines.yaml
 This file contains the configuration of all remote machines. Every entry looks similar to the following.
@@ -102,6 +104,7 @@ The following fields are supported:
 * `username` (required) is the username to use for the remote connection
 * `password` (optional) if login via username/password is used, specify a password
 * `keyfile` (optional) if login via key, specify the path to the key file here
+* `passphrase` (optional) if login via, the passphrase for the key can be specified here
 * `key` (optional) if login via key, you can alternatively enter the private key here
 * `proxy` (optional) if a proxy is required, i.e., whether LabRunner has to connect to a different SSH machine first
 
@@ -122,5 +125,6 @@ The following fields are supported:
 * `username` (required) is the username to use for the proxy server
 * `password` (optional) if login via username/password is used, specify a password
 * `keyfile` (optional) if login via key, specify the path to the key file here
+* `passphrase` (optional) if login via, the passphrase for the key can be specified here
 * `key` (optional) if login via key, you can alternatively enter the private key here
 * `timeout` (optional) timeout in seconds (default: 5) after which the connection has to be established.

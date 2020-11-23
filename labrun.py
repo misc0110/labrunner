@@ -120,7 +120,7 @@ class RemoteJob():
                 proxy_con = paramiko.SSHClient()
                 proxy_con.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 if not self.simulate:
-                    proxy_con.connect(hostname=proxy["server"], username=proxy.get("username", ""), password=proxy.get("password", None), pkey=proxy.get("key", None), key_filename=proxy.get("keyfile", None), timeout=int(proxy.get("timeout", 5)),allow_agent=False,look_for_keys=False)
+                    proxy_con.connect(hostname=proxy["server"], username=proxy.get("username", ""), password=proxy.get("password", None), pkey=proxy.get("key", None), key_filename=proxy.get("keyfile", None), passphrase=proxy.get("passphrase", None), timeout=int(proxy.get("timeout", 5)),allow_agent=False,look_for_keys=False)
                     logger.debug("Proxy command 'nc %s %d'" % (server, int(self.machine.get("port", 22))))
                     nc_con = proxy_con.exec_command("nc %s %d" % (server, int(self.machine.get("port", 22))))
                     transport = ParaProxy(*nc_con)
@@ -211,6 +211,10 @@ class RemoteJob():
             print(e)
 
 
+def path_expand(path):
+    return os.path.expanduser(path)
+
+
 def job_runner(job):
     job.start()
 
@@ -236,11 +240,19 @@ def main(copy, run, get, delete, save_output, quiet, group, machine, all_machine
         logger.setLevel(logging.DEBUG)
 
     if not os.path.exists(auth):
-        logger.critical("No %s file found! Did you adapt auth.yaml.sample and rename it to auth.yaml?" % auth)
-        sys.exit(1)
+        auth_usr = path_expand('~/.config/labrunner/auth.yaml')
+        if not os.path.exists(auth_usr):
+            logger.critical("No %s file found! Did you adapt auth.yaml.sample and rename it to auth.yaml?" % auth)
+            sys.exit(1)
+        else:
+            auth = auth_usr
     if not os.path.exists(machine_list):
-        logger.critical("No %s configuration file found" % machine_list)
-        sys.exit(1)
+        machine_list_usr = path_expand('~/.config/labrunner/machines.yaml')
+        if not os.path.exists(machine_list_usr):
+            logger.critical("No %s configuration file found" % machine_list)
+            sys.exit(1)
+        else:
+            machine_list = machine_list_usr
 
     config = open(auth).read() + "\n" + open(machine_list).read()
     setting = yaml.load(config, Loader=yaml.FullLoader)
