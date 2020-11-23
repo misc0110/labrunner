@@ -130,13 +130,14 @@ class RemoteJob():
             password = auth.get("password", None)
             key = auth.get("key", None)
             keyfile = auth.get("keyfile", None)
+            passphrase = auth.get("passphrase", None)
 
             logger.debug("Connect %s to %s (proxy: %s)" % (username, server, "Yes" if proxy else "No"))
 
             if not self.simulate:
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh.connect(server, username=username, password=password, pkey=key, key_filename=keyfile, sock=transport, timeout=int(self.machine.get("timeout", 5)),allow_agent=False,look_for_keys=False)
+                ssh.connect(server, username=username, password=password, pkey=key, passphrase=passphrase, key_filename=keyfile, sock=transport, timeout=int(self.machine.get("timeout", 5)),allow_agent=False,look_for_keys=False)
 
             if len(self.copy):
                 if not self.simulate:
