@@ -128,3 +128,5 @@ The following fields are supported:
 * `passphrase` (optional) if login via, the passphrase for the key can be specified here
 * `key` (optional) if login via key, you can alternatively enter the private key here
 * `timeout` (optional) timeout in seconds (default: 5) after which the connection has to be established.
+* `port` (optional) specifies the SSH port of the machine (default: 22)
+
