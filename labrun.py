@@ -120,7 +120,7 @@ class RemoteJob():
                 proxy_con = paramiko.SSHClient()
                 proxy_con.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 if not self.simulate:
-                    proxy_con.connect(hostname=proxy["server"], username=proxy.get("username", ""), password=proxy.get("password", None), pkey=proxy.get("key", None), key_filename=proxy.get("keyfile", None), passphrase=proxy.get("passphrase", None), timeout=int(proxy.get("timeout", 5)), port=int(proxy.get("port", 22)), allow_agent=False,look_for_keys=False)
+                    proxy_con.connect(hostname=proxy["server"], username=proxy.get("username", ""), password=proxy.get("password", None), pkey=proxy.get("key", None), key_filename=proxy.get("keyfile", None), passphrase=proxy.get("passphrase", None), timeout=int(proxy.get("timeout", 5)), port=int(proxy.get("port", 22)), allow_agent=True,look_for_keys=False)
                     logger.debug("Proxy command 'nc %s %d'" % (server, int(self.machine.get("port", 22))))
                     nc_con = proxy_con.exec_command("nc %s %d" % (server, int(self.machine.get("port", 22))))
                     transport = ParaProxy(*nc_con)
@@ -137,7 +137,7 @@ class RemoteJob():
             if not self.simulate:
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh.connect(server, username=username, password=password, pkey=key, passphrase=passphrase, key_filename=keyfile, sock=transport, timeout=int(self.machine.get("timeout", 5)),allow_agent=False,look_for_keys=False)
+                ssh.connect(server, username=username, password=password, pkey=key, passphrase=passphrase, key_filename=keyfile, sock=transport, timeout=int(self.machine.get("timeout", 5)),allow_agent=True,look_for_keys=False)
 
             if len(self.copy):
                 if not self.simulate:
